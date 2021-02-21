@@ -17,15 +17,15 @@ def getVersion():
 
 setup(
     python_requires=">=3.8",
-    name="pymdmix-plugin-template",
+    name="pymdmix-solvent",
     version=getVersion(),
     license="MIT",
-    description="Plugin template for kick-starting a new project",
+    description="pymdmix plugin for solvent management",
     author="ggutierrez-bio",
     author_email="",
     url="https://github.com/ggutierrez-bio/mdmix4",
-    data_files=[("pymdmix", ["defaults/pymdmix_plugin_template.yml"])],
-    packages=["pymdmix_plugin_template"],
+    data_files=[("pymdmix", ["defaults/pymdmix_solvent.yml"])],
+    packages=["pymdmix_solvent"],
     install_requires=getRequirements(),
     classifiers=['Development Status :: 3 - Alpha']
 )
