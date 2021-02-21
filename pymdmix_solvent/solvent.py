@@ -1,14 +1,22 @@
 from argparse import ArgumentParser, Namespace
-from pymdmix_core.plugin.base import Plugin
+from sqlalchemy import Column, Integer
+from pymdmix_core.orm import BaseModel
+from pymdmix_core.plugin.crud import CRUDPlugin
 
 
-class PluginTemplate(Plugin):
+class Solvent(BaseModel):
+    __tablename__ = "solvents"
+    id = Column(Integer(), primary_key=True)
 
-    NAME = "plugin_template"
-    HELP_STRING: str = "plugin_template"
+
+class SolventPlugin(CRUDPlugin):
+
+    NAME = "solvent"
+    HELP_STRING: str = ""
     LOAD_CONFIG: bool = False
-    CONFIG_FILE: str = "pymdmix_plugin_template.yml"
+    CONFIG_FILE: str = "pymdmix_solvent.yml"
     ALLOW_EMPTY_ACTION = False
+    CLASS = Solvent
 
     def __init__(self, master_parser: ArgumentParser) -> None:
         super().__init__(master_parser)
