@@ -7,10 +7,7 @@ from pymdmix_solvent.solvent import Probe, ProbeType, Solvent
 from .conftest import FPATH
 from unittest.mock import patch
 # TODO:
-# test solvent creation, single solvent per file
 # test solvent creation, multiple solvents per file
-# test solvent deletion.
-#   it should delete the solvent and probes, but not the probe_types
 # test grouping by probe
 # test grouping by probe type
 
@@ -21,7 +18,7 @@ def get_plugin_manager() -> PluginManager:
     return plugin_manager
 
 
-def run_command(cmd: str, plugin_manager = None):
+def run_command(cmd: str, plugin_manager=None):
     plugin_manager = plugin_manager if plugin_manager is not None else get_plugin_manager()
     args = plugin_manager.parser.parse_args(shlex.split(cmd))
     plugin_manager.plugins["solvent"].run(args)

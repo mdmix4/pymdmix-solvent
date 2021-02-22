@@ -37,7 +37,7 @@ class Solvent(BaseModel):
 
 class Probe(BaseModel):
     __tablename__ = "solvent_probes"
-    
+
     id = Column(String, primary_key=True)
     solvent = Column(
         String,
@@ -51,7 +51,7 @@ class Probe(BaseModel):
     )
     mask = Column(String)
     types = relationship("ProbeType", secondary=PROBES_TO_TYPES_ASSOCIATION_TABLE)
-    
+
 
 class ProbeType(BaseModel):
     __tablename__ = "solvent_probe_types"
