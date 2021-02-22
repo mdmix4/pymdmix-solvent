@@ -1,1 +1,4 @@
 pymdmix-core
+
+numpy
+parmed

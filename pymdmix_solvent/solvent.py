@@ -1,10 +1,11 @@
 import os
 from argparse import ArgumentParser, Namespace
 from sqlalchemy import Column, String, LargeBinary
-from pymdmix_core.orm import BaseModel
-from pymdmix_core.plugin.crud import ActionDelete, CRUDPlugin, parse_file_from_args
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import ForeignKey, Table
+from parmed.amber import AmberOFFLibrary
+from pymdmix_core.orm import BaseModel
+from pymdmix_core.plugin.crud import ActionDelete, CRUDPlugin, parse_file_from_args
 
 
 class ActionDeleteSolvent(ActionDelete):
@@ -32,7 +33,16 @@ class Solvent(BaseModel):
     info = Column(String)
     unit = Column(String)
     off_file = Column(LargeBinary)
+    residue = Column(String)
     probes = relationship("Probe", cascade="all, delete, delete-orphan")
+
+    def __str__(self):
+        return self.id
+
+    def __repr__(self) -> str:
+        msg = [f"[{self.id}]: {self.info}"]
+        msg += [f"\t{probe.__repr__()}" for probe in self.probes]
+        return "\n".join(msg)
 
 
 class Probe(BaseModel):
@@ -51,6 +61,9 @@ class Probe(BaseModel):
     )
     mask = Column(String)
     types = relationship("ProbeType", secondary=PROBES_TO_TYPES_ASSOCIATION_TABLE)
+
+    def __repr__(self) -> str:
+        return f"[{self.id}]: {','.join([t.id for t in self.types])}"
 
 
 class ProbeType(BaseModel):
@@ -86,40 +99,49 @@ class SolventPlugin(CRUDPlugin):
             raise ValueError("unable to read config file for solvent")
         config_file = args.json if args.json is not None else args.yaml
         models = []
-        for solvent_id, values in fields.items():
-            off_file = values["off_file"]
-            if not os.path.exists(off_file):
-                base_path = os.path.dirname(config_file)
-                off_file = os.path.join(base_path, off_file)
-
-            off_file_data = None
-            with open(off_file, 'rb') as file:
-                off_file_data = file.read()
-
+        for solvent_id, data in fields.items():
+            off_file_data = self._get_off_data(config_file, data)
             solvent_data = {
                 "id": solvent_id,
-                "info": values.get("info"),
+                "info": data.get("info"),
                 "off_file": off_file_data,
-                "unit": values.get("unit"),
+                "unit": data.get("unit"),
+                "residue": data.get("residue")
             }
             solvent = Solvent(**solvent_data)
             self.session.add(solvent)
+            self._probes_factory(data, solvent)
+            models.append(solvent)
+        return models if len(models) > 0 else None
 
-            for probe_id, probe_fields in values.get("probes", {}).items():
-                probe_data = {
+    def _probes_factory(self, data, solvent):
+        for probe_id, probe_fields in data.get("probes", {}).items():
+            probe_data = {
                     "id": probe_id,
                     "solvent": solvent.id,
                     "mask": probe_fields.get("mask"),
                 }
-                probe = Probe(**probe_data)
-                self.session.add(probe)
-                for probe_type in probe_fields.get("types", []):
-                    current = self.session.query(ProbeType).filter(ProbeType.id == probe_type).first()
-                    if current is None:
-                        current = ProbeType(id=probe_type)
-                        self.session.add(current)
-                    probe.types.append(current)
-                solvent.probes.append(probe)
-            self.session.commit()
-            models.append(solvent)
-        return models if len(models) > 0 else None
+            probe = Probe(**probe_data)
+            self.session.add(probe)
+            for probe_type in probe_fields.get("types", []):
+                current = self.session.query(ProbeType).filter(ProbeType.id == probe_type).first()
+                if current is None:
+                    current = ProbeType(id=probe_type)
+                    self.session.add(current)
+                probe.types.append(current)
+            solvent.probes.append(probe)
+        self.session.commit()
+        return solvent
+        
+
+    def _get_off_data(self, config_file, values):
+        off_file = values["off_file"]
+        if not os.path.exists(off_file):
+            base_path = os.path.dirname(config_file)
+            off_file = os.path.join(base_path, off_file)
+        # this is a format check, to ensure the file passed is a properly formed OFF file
+        AmberOFFLibrary().parse(off_file)
+        off_file_data = None
+        with open(off_file, 'rb') as file:
+            off_file_data = file.read()
+        return off_file_data

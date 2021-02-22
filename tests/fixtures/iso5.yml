@@ -2,6 +2,7 @@ ISO5:
     info: "Isopropanol 5% mixture"
     off_file: ISOWAT5.off
     unit: ISOWAT5
+    residue: ISO
     probes:
       WAT:
         mask: WAT@O
