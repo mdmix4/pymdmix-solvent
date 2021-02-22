@@ -132,7 +132,6 @@ class SolventPlugin(CRUDPlugin):
             solvent.probes.append(probe)
         self.session.commit()
         return solvent
-        
 
     def _get_off_data(self, config_file, values):
         off_file = values["off_file"]
