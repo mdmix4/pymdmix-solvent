@@ -1,4 +1,5 @@
 import os
+import warnings
 from argparse import ArgumentParser, Namespace
 from sqlalchemy import Column, String, LargeBinary
 from sqlalchemy.orm import relationship
@@ -139,7 +140,9 @@ class SolventPlugin(CRUDPlugin):
             base_path = os.path.dirname(config_file)
             off_file = os.path.join(base_path, off_file)
         # this is a format check, to ensure the file passed is a properly formed OFF file
-        AmberOFFLibrary().parse(off_file)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            AmberOFFLibrary().parse(off_file)
         off_file_data = None
         with open(off_file, 'rb') as file:
             off_file_data = file.read()
