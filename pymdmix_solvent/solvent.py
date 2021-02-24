@@ -118,10 +118,10 @@ class SolventPlugin(CRUDPlugin):
     def _probes_factory(self, data, solvent):
         for probe_id, probe_fields in data.get("probes", {}).items():
             probe_data = {
-                    "id": probe_id,
-                    "solvent": solvent.id,
-                    "mask": probe_fields.get("mask"),
-                }
+                "id": probe_id,
+                "solvent": solvent.id,
+                "mask": probe_fields.get("mask"),
+            }
             probe = Probe(**probe_data)
             self.session.add(probe)
             for probe_type in probe_fields.get("types", []):
